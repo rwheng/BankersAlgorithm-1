@@ -124,6 +124,208 @@ class BankersAlgorithmTestCases(unittest.TestCase):
             for i in range(self.b.num_res):
                 self.b.resources[i] += self.b.allocation[process][i]
 
+    def test_num_proc_must_be_int(self):
+        with self.assertRaises(ValueError):
+            self.b = ba("a", 3, [10, 5, 7],
+                        [[0, 1, 0],
+                         [2, 0, 0],
+                         [3, 0, 2],
+                         [2, 1, 1],
+                         [0, 0, 2]],
+                        [[7, 5, 3],
+                         [3, 2, 2],
+                         [9, 0, 2],
+                         [2, 2, 2],
+                         [4, 3, 3]])
+
+    def test_num_res_must_be_int(self):
+        with self.assertRaises(ValueError):
+            self.b = ba(5, "a", [10, 5, 7],
+                        [[0, 1, 0],
+                         [2, 0, 0],
+                         [3, 0, 2],
+                         [2, 1, 1],
+                         [0, 0, 2]],
+                        [[7, 5, 3],
+                         [3, 2, 2],
+                         [9, 0, 2],
+                         [2, 2, 2],
+                         [4, 3, 3]])
+
+    def test_res_array_must_be_right_size(self):
+        with self.assertRaises(ValueError):
+            self.b = ba(5, 3, [10, 5, 7, 30],
+                        [[0, 1, 0],
+                         [2, 0, 0],
+                         [3, 0, 2],
+                         [2, 1, 1],
+                         [0, 0, 2]],
+                        [[7, 5, 3],
+                         [3, 2, 2],
+                         [9, 0, 2],
+                         [2, 2, 2],
+                         [4, 3, 3]])
+        with self.assertRaises(ValueError):
+            self.b = ba(5, 3, [10, 5],
+                        [[0, 1, 0],
+                         [2, 0, 0],
+                         [3, 0, 2],
+                         [2, 1, 1],
+                         [0, 0, 2]],
+                        [[7, 5, 3],
+                         [3, 2, 2],
+                         [9, 0, 2],
+                         [2, 2, 2],
+                         [4, 3, 3]])
+
+    def test_res_array_must_be_all_ints(self):
+        with self.assertRaises(ValueError):
+            self.b = ba(5, 3, [10, 5, "a"],
+                        [[0, 1, 0],
+                         [2, 0, 0],
+                         [3, 0, 2],
+                         [0, 0, 2]],
+                        [[7, 5, 3],
+                         [3, 2, 2],
+                         [9, 0, 2],
+                         [2, 2, 2],
+                         [4, 3, 3]])
+
+    def test_alloc_array_must_have_proc_num_rows(self):
+        with self.assertRaises(ValueError):
+            self.b = ba(5, 3, [10, 5, 7, 30],
+                        [[0, 1, 0],
+                         [2, 0, 0],
+                         [3, 0, 2],
+                         [0, 0, 2]],
+                        [[7, 5, 3],
+                         [3, 2, 2],
+                         [9, 0, 2],
+                         [2, 2, 2],
+                         [4, 3, 3]])
+
+        with self.assertRaises(ValueError):
+            self.b = ba(5, 3, [10, 5, 7, 30],
+                        [[0, 1, 0],
+                         [2, 0, 0],
+                         [3, 0, 2],
+                         [2, 1, 1],
+                         [0, 0, 0],
+                         [0, 0, 2]],
+                        [[7, 5, 3],
+                         [3, 2, 2],
+                         [9, 0, 2],
+                         [2, 2, 2],
+                         [4, 3, 3]])
+
+    def test_alloc_array_must_have_res_num_cols(self):
+        with self.assertRaises(ValueError):
+            self.b = ba(5, 3, [10, 5, 7],
+                        [[0, 0],
+                         [2, 0],
+                         [3, 2],
+                         [2, 1],
+                         [0, 2]],
+                        [[7, 5, 3],
+                         [3, 2, 2],
+                         [9, 0, 2],
+                         [2, 2, 2],
+                         [4, 3, 3]])
+
+        with self.assertRaises(ValueError):
+            self.b = ba(5, 3, [10, 5, 7],
+                        [[0, 1, 1, 0],
+                         [2, 1, 1, 0],
+                         [3, 1, 1, 2],
+                         [2, 1, 1, 1],
+                         [0, 1, 1, 2]],
+                        [[7, 5, 3],
+                         [3, 2, 2],
+                         [9, 0, 2],
+                         [2, 2, 2],
+                         [4, 3, 3]])
+
+    def test_alloc_array_must_be_all_ints(self):
+        with self.assertRaises(ValueError):
+            self.b = ba(5, 3, [10, 5, 7],
+                        [[0, 1, 0],
+                         [2, 0, 0],
+                         [0, 0, 0],
+                         [3, "a", 2],
+                         [0, 0, 2]],
+                        [[7, 5, 3],
+                         [3, 2, 2],
+                         [9, 0, 2],
+                         [2, 2, 2],
+                         [4, 3, 3]])
+
+    def test_max_array_must_have_proc_num_rows(self):
+        with self.assertRaises(ValueError):
+            self.b = ba(5, 3, [10, 5, 7],
+                        [[0, 1, 0],
+                         [2, 0, 0],
+                         [3, 0, 2],
+                         [2, 1, 1],
+                         [0, 0, 2]],
+                        [[7, 5, 3],
+                         [3, 2, 2],
+                         [9, 0, 2],
+                         [0, 0, 0],
+                         [2, 2, 2],
+                         [4, 3, 3]])
+
+        with self.assertRaises(ValueError):
+            self.b = ba(5, 3, [10, 5, 7],
+                        [[0, 1, 0],
+                         [2, 0, 0],
+                         [3, 0, 2],
+                         [2, 1, 1],
+                         [0, 0, 2]],
+                        [[7, 5, 3],
+                         [3, 2, 2],
+                         [2, 2, 2],
+                         [4, 3, 3]])
+
+    def test_max_array_must_have_res_num_cols(self):
+        with self.assertRaises(ValueError):
+            self.b = ba(5, 3, [10, 5, 7],
+                        [[0, 1, 0],
+                         [2, 0, 0],
+                         [3, 0, 2],
+                         [2, 1, 1],
+                         [0, 0, 2]],
+                        [[7, 5, 0, 3],
+                         [3, 2, 0, 2],
+                         [9, 0, 0, 2],
+                         [2, 2, 0, 2],
+                         [4, 3, 0, 3]])
+        with self.assertRaises(ValueError):
+            self.b = ba(5, 3, [10, 5, 7],
+                        [[0, 1, 0],
+                         [2, 0, 0],
+                         [3, 0, 2],
+                         [2, 1, 1],
+                         [0, 0, 2]],
+                        [[7, 3],
+                         [3, 2],
+                         [9, 2],
+                         [2, 2],
+                         [4, 3]])
+
+    def test_max_array_must_be_all_ints(self):
+        with self.assertRaises(ValueError):
+            self.b = ba(5, 3, [10, 5, 7],
+                        [[0, 1, 0],
+                         [2, 0, 0],
+                         [3, 0, 2],
+                         [0, 0, 0],
+                         [0, 0, 2]],
+                        [[7, 5, 3],
+                         [3, 2, 2],
+                         [9, "A", 2],
+                         [2, 2, 2],
+                         [4, 3, 3]])
+
 
 if __name__ == "__main__":
     unittest.main()

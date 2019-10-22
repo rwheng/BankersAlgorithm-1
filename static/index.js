@@ -21,6 +21,11 @@ function update_config() {
 		data: {config: current_config},
 		dataType: "json",
         success: function(data){
+        	if (data.status == "error") {
+				$("#div_safety_alert").append(generate_generic_unsafe_alert("Config not updated!", "Error: " + data.error));
+				$("#txt_config").val(base_config);
+				update_config();
+        	}
         	console.log(data);
         },
         failure: function(errMsg) {
@@ -68,6 +73,17 @@ $("#btn_submit_request").on("click", () => {
 	let proc_id = parseInt($("#txt_process_id").val())
 	let resource_req = $("#txt_resource_request").val().split(" ").map(parseFloat);
 
+	if (Number.isNaN(proc_id)) {
+		$("#div_safety_alert").append(generate_generic_unsafe_alert("Resources not Requested!", "Process ID is not a number"));
+		$("#txt_process_id").val("")
+		return;
+	}
+
+	if (resource_req.includes(NaN)) {
+		$("#div_safety_alert").append(generate_generic_unsafe_alert("Resources not Requested!", "Resource request array contains bad input"));
+		$("#txt_resource_request").val("")
+		return;
+	}
 	
 	console.log({proc_id: proc_id, resource_req: resource_req})
 	$.ajax({
@@ -156,6 +172,15 @@ function generate_safe_alert(safe_sequence) {
 function generate_unsafe_alert() {
 	return '<div class="alert alert-danger alert-dismissible fade show" role="alert">' +
 		   '<strong>The system is unsafe!</strong> No sequence of processes will allow the system to run' +
+  		   '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
+    	   '<span aria-hidden="true">&times;</span>' + 
+  		   '</button>' +
+		   '</div>';
+}
+
+function generate_generic_unsafe_alert(title, body) {
+	return '<div class="alert alert-danger alert-dismissible fade show" role="alert">' +
+		   '<strong>' + title + '</strong> ' + body +
   		   '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
     	   '<span aria-hidden="true">&times;</span>' + 
   		   '</button>' +

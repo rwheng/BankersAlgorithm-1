@@ -28,26 +28,40 @@ def index():
 def resource_request():
     proc_id = int(request.form["proc_id"])
     resources = list(map(int, request.form.getlist("resource_req[]")))
-    is_safe, safe_sequence, log = b.request(proc_id, resources)
-    return jsonify({"is_safe": is_safe,
-                    "safe_seq": safe_sequence,
-                    "log": log})
+    try:
+        is_safe, safe_sequence, log = b.request(proc_id, resources)
+        return jsonify({"is_safe": is_safe,
+                        "safe_seq": safe_sequence,
+                        "log": log})
+    except ValueError as ve:
+        return jsonify({"is_safe": False,
+                        "safe_seq": [],
+                        "log": ["Value Error: " + str(ve)]})
 
 
 @app.route("/safety", methods=["GET"])
 def safety():
-    is_safe, safe_sequence, log = b.safety()
-    return jsonify({"is_safe": is_safe,
-                    "safe_seq": safe_sequence,
-                    "log": log})
+    try:
+        is_safe, safe_sequence, log = b.safety()
+        return jsonify({"is_safe": is_safe,
+                        "safe_seq": safe_sequence,
+                        "log": log})
+    except ValueError as ve:
+        return jsonify({"is_safe": False,
+                        "safe_seq": [],
+                        "log": ["Value Error: " + str(ve)]})
 
 
 @app.route("/update", methods=["POST"])
 def update():
     config = json.loads(request.form["config"])["config"]
     global b
-    b = bankers_algorithm_factory(config)
-    return jsonify({"status": "success"})
+    try:
+        b = bankers_algorithm_factory(config)
+        return jsonify({"status": "success"})
+    except Exception as e:
+        b = bankers_algorithm_factory(default_config)
+        return jsonify({"status": "error", "error": str(e)})
 
 
 @app.route("/current")

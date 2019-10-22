@@ -26,6 +26,57 @@ class BankersAlgorithm:
         self.allocation = allocation
         self.maximum = maximum
 
+        # Check that everything is valid, if not throw a value error
+        # explaining what's wrong
+        if(type(self.num_proc) is not int):
+            raise ValueError("Number of Processes must be an integer," +
+                             f"{type(self.num_proc)} is not int.")
+
+        if(type(self.num_res) is not int):
+            raise ValueError("Number of Resources must be an integer," +
+                             f"{type(self.num_res)} is not int.")
+
+        if len(self.resources) != self.num_res:
+            raise ValueError("Length of resource array must equal number " +
+                             f"of resources, {len(self.resources)} is not " +
+                             f" {self.num_res}")
+
+        if len(self.allocation) != self.num_proc:
+            raise ValueError("Rows of allocation matrix must equal number " +
+                             f"of processes, {len(self.allocation)} is not " +
+                             f" {self.num_proc}")
+
+        if len(self.maximum) != self.num_proc:
+            raise ValueError("Rows of maximum matrix must equal number " +
+                             f"of processes, {len(self.maximum)} is not " +
+                             f" {self.num_proc}")
+
+        for i in range(self.num_proc):
+            if len(self.allocation[i]) != self.num_res:
+                raise ValueError("Cols of allocation matrix must equal " +
+                                 f"number of resources, " +
+                                 f"{len(self.allocation)} is not" +
+                                 f" {self.num_res}")
+            if len(self.maximum[i]) != self.num_res:
+                raise ValueError("Cols of maximum matrix must equal number " +
+                                 f"of resources, {len(self.maximum)} is not " +
+                                 f" {self.num_res}")
+
+        for i in range(self.num_proc):
+            for j in range(self.num_res):
+                if type(self.allocation[i][j]) is not int:
+                    raise ValueError("All values in allocation matrix should" +
+                                     " be of type int. " +
+                                     f"{type(self.allocation[i][j])}" +
+                                     f" at {i},{j} is not int")
+                if type(self.maximum[i][j]) is not int:
+                    raise ValueError("All values in maximum matrix should" +
+                                     " be of type int. " +
+                                     f"{type(self.allocation[i][j])}" +
+                                     f" at {i},{j} is not int")
+
+
+
     def calculate_available(self) -> List[int]:
         """Calculate the available array. This contains the number of
         free resources that are not allocated to a process. available[i] = k
@@ -112,31 +163,32 @@ class BankersAlgorithm:
         # for that process. No need to update the need or available arrays
         # because they are recalculated during at each function where they
         # may be modified
+        safe_seq = []
         if valid_request:
             logs.append("Valid Request. Adding new process resources")
             for i in range(self.num_res):
                 self.allocation[proc_num][i] += resource_req[i]
 
-        # Check if any of the allocations are below zero and that
-        # the system is currently in a safe state
-        logs.append("Checking system safety")
-        is_safe, safe_seq, safety_logs = self.safety()
-        logs += safety_logs
-        if min(self.allocation[proc_num]) < 0 or not is_safe:
-            if not is_safe:
-                logs.append("Resource request puts system in unsafe state." +
-                            " Resetting to last known good")
-            if min(self.allocation[proc_num]) < 0:
-                logs.append("Resource request allocated below 0 resources. " +
-                            "Resetting to last known good")
-            # If the system is not safe then unset the valid flag and reset the
-            # requested resources
-            valid_request = False
-            for i in range(self.num_res):
-                self.allocation[proc_num][i] -= resource_req[i]
+            # Check if any of the allocations are below zero and that
+            # the system is currently in a safe state
+            logs.append("Checking system safety")
+            is_safe, safe_seq, safety_logs = self.safety()
+            logs += safety_logs
+            if min(self.allocation[proc_num]) < 0 or not is_safe:
+                if not is_safe:
+                    logs.append("Resource request puts system in unsafe " +
+                                "state. Resetting to last known good")
+                if min(self.allocation[proc_num]) < 0:
+                    logs.append("Resource request allocated below 0 " +
+                                "resources. Resetting to last known good")
+                # If the system is not safe then unset the valid flag
+                # and reset the requested resources
+                valid_request = False
+                for i in range(self.num_res):
+                    self.allocation[proc_num][i] -= resource_req[i]
 
-        if is_safe:
-            logs.append("System is safe with new resource allocation")
+            if is_safe:
+                logs.append("System is safe with new resource allocation")
 
         # Return if the request was valid and the system is in a current safe
         # state
