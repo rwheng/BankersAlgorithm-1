@@ -1,6 +1,7 @@
 from typing import List
 from typing import Tuple
 from Process import Process
+from copy import deepcopy
 import logging
 
 logging.basicConfig(level=logging.DEBUG)
@@ -77,7 +78,6 @@ class BankersAlgorithm:
         for i in range(num_proc):
             self.processes.append(Process(allocation[i], maximum[i]))
 
-
     def request(self, proc_num: int,
                 resource_req: List[int]) -> Tuple[bool, List[int], List[str]]:
         """Request for a process to be allocated extra resources
@@ -129,18 +129,16 @@ class BankersAlgorithm:
             logs.append("Checking system safety")
             is_safe, safe_seq, safety_logs = self.safety()
             logs += safety_logs
-            if min(self.allocation[proc_num]) < 0 or not is_safe:
-                if not is_safe:
-                    logs.append("Resource request puts system in unsafe " +
-                                "state. Resetting to last known good")
-                if min(self.allocation[proc_num]) < 0:
-                    logs.append("Resource request allocated below 0 " +
-                                "resources. Resetting to last known good")
+
+            if not is_safe:
+                logs.append("Resource request puts system in unsafe " +
+                            "state. Resetting to last known good")
+
                 # If the system is not safe then unset the valid flag
                 # and reset the requested resources
                 valid_request = False
-                for i in range(self.num_res):
-                    self.allocation[proc_num][i] -= resource_req[i]
+                self.processes[proc_num].request([-req for req
+                                                  in resource_req])
 
             if is_safe:
                 logs.append("System is safe with new resource allocation")
@@ -149,8 +147,8 @@ class BankersAlgorithm:
         # state
         return valid_request, safe_seq, logs
 
-
-    def safety(self) -> Tuple[bool, List[int], List[str]]:
+    def safety(self, processes: List[Process]=None,
+               logs: List[str]=None) -> Tuple[bool, List[List[int]], List[str]]:
         """Check the safety of the current state of the system.
 
         Returns:
@@ -160,60 +158,18 @@ class BankersAlgorithm:
                                                and the logs to print on
                                                the screen
         """
-        # Start all processes out as unfinished
-        finish = [False] * self.num_proc
+        # If this is the first runthrough then copy the current processes
+        # into the processes variable and set up the logs
+        if processes is None:
+            processes = [deepcopy(process) for process in self.processes]
+        # Set up the logs
+        if logs is None:
+            logs = []
 
-        # Calculate the current avaliable resources
-        work = self.calculate_available()
 
-        # Caclulate the number of resources each process could request
-        need = self.calculate_need()
+        
 
-        # Set the flag for the loop
-        done = False
 
-        # Create a queue to store the process order
-        process_order = []
-
-        # Define an array for the logs
-        logs = []
-
-        # Loop while the done flag is unset
-        while(not done):
-            # Find an index i such that both finish[i] == false and
-            # need[i] <= work[i] for all i in need and work
-
-            found_i = False
-            for i in range(self.num_proc):
-                if finish[i]:
-                    continue
-
-                logs.append(f"Checking proc {i}")
-                can_do = True
-                for j in range(self.num_res):
-                    if need[i][j] <= work[j]:
-                        continue
-                    else:
-                        can_do = False
-                        break
-
-                if can_do:
-                    logs.append(f"Executing proc {i}")
-                    found_i = True
-                    process_order.append(i)
-                    finish[i] = True
-                    for j in range(self.num_res):
-                        work[j] += self.allocation[i][j]
-                    break
-
-            if not found_i or min(finish):
-                if not found_i:
-                    logs.append("No more processes are able to execute")
-                if min(finish):
-                    logs.append("All processes are finished")
-                done = True
-
-        return min(finish), process_order, logs
 
 if __name__ == '__main__':
 
