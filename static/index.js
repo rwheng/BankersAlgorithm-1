@@ -67,6 +67,8 @@ function pulldown_config() {
 $("#btn_submit_request").on("click", () => {
 	let proc_id = parseInt($("#txt_process_id").val())
 	let resource_req = $("#txt_resource_request").val().split(" ").map(parseFloat);
+
+	
 	console.log({proc_id: proc_id, resource_req: resource_req})
 	$.ajax({
 		type: "POST",
@@ -102,7 +104,7 @@ $("#btn_check_safety").on("click", () => {
 		type: "GET",
 		url: "/safety",
         success: function(data){
-        	$("#resource_request_log").val(data.log);
+        	$("#resource_request_log").val(data.log.join("\n"));
         	let alert = ""
         	if (data.is_safe) {
         		alert = generate_safe_alert(data.safe_seq);
