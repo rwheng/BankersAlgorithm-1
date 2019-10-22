@@ -61,7 +61,7 @@ class BankersAlgorithm:
         return [[self.maximum[i][j] - self.allocation[i][j]
                  for j in range(self.num_res)] for i in range(self.num_proc)]
 
-    def request(self, proc_num: int, resource_req: List[int]) -> bool:
+    def request(self, proc_num: int, resource_req: List[int]) -> Tuple[bool, List[int], List[str]]:
         """Request for a process to be allocated extra resources
 
         Args:
@@ -84,6 +84,9 @@ class BankersAlgorithm:
         if len(resource_req) != self.num_res:
             raise ValueError("Length of resource request " +
                              f"{len(resource_req)} is not {self.num_res}")
+
+        # Start logs for request
+        logs = []
 
         # Calculate the need and available arrays
         need = self.calculate_need()
@@ -112,7 +115,8 @@ class BankersAlgorithm:
 
         # Check if any of the allocations are below zero and that
         # the system is currently in a safe state
-        if min(self.allocation[proc_num]) < 0 or not self.safety()[0]:
+        is_safe, safe_seq, safety_logs = self.safety()
+        if min(self.allocation[proc_num]) < 0 or not is_safe:
             # If the system is not safe then unset the valid flag and reset the
             # requested resources
             valid_request = False
@@ -121,14 +125,17 @@ class BankersAlgorithm:
 
         # Return if the request was valid and the system is in a current safe
         # state
-        return valid_request
+        return valid_request, safe_seq, logs + safety_logs
 
-    def safety(self) -> Tuple[bool, List[int]]:
+    def safety(self) -> Tuple[bool, List[int], List[str]]:
         """Check the safety of the current state of the system.
 
         Returns:
-            Tuple[bool, List[int]]: 2-tuple containing if the system is safe,
-                                    and if so the safe process order
+            Tuple[bool, List[int], List[str]]: 3-tuple containing if the
+                                               system is safe, and if so
+                                               the safe process order,
+                                               and the logs to print on
+                                               the screen
         """
         # Start all processes out as unfinished
         finish = [False] * self.num_proc
@@ -174,20 +181,4 @@ class BankersAlgorithm:
             if not found_i or min(finish):
                 done = True
 
-        return min(finish), process_order
-
-
-# 5         (Number of processes)
-# 3         (Number of resource types)
-# 10 5 7 (Number of instances for R0, R1, R2))
-# 0 1 0   (Allocation for P0)
-# 2 0 0   (Allocation for P1)
-# 3 0 2   (Allocation for P2)
-# 2 1 1   (Allocation for P3)
-# 0 0 2   (Allocation for P4)
-# 7 5 3   (Max for P0)
-# 3 2 2   (Max for P1)
-# 9 0 2   (Max for P2)
-# 2 2 2   (Max for P3)
-# 4 3 3   (Max for P4)
-
+        return min(finish), process_order, ["Testing"]

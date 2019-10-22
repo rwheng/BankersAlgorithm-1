@@ -105,7 +105,7 @@ class BankersAlgorithmTestCases(unittest.TestCase):
         Algorithm configuration and that it is in fact a valid sequence
         """
         # Query the safety of the configuration
-        is_safe, safe_seq = self.b.safety()
+        is_safe, safe_seq, _ = self.b.safety()
 
         # Assert that the configuration is tested as safe
         self.assertTrue(is_safe)
