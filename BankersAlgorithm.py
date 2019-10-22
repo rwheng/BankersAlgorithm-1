@@ -61,7 +61,8 @@ class BankersAlgorithm:
         return [[self.maximum[i][j] - self.allocation[i][j]
                  for j in range(self.num_res)] for i in range(self.num_proc)]
 
-    def request(self, proc_num: int, resource_req: List[int]) -> Tuple[bool, List[int], List[str]]:
+    def request(self, proc_num: int,
+                resource_req: List[int]) -> Tuple[bool, List[int], List[str]]:
         """Request for a process to be allocated extra resources
 
         Args:
@@ -101,6 +102,8 @@ class BankersAlgorithm:
         for i in range(self.num_res):
             if (resource_req[i] > need[proc_num][i] or
                     resource_req[i] > available[i]):
+                logs.append(f"Process request of resource_{i} unable " +
+                            "to be fulfulled, not enough resources")
                 # If the request is invalid then log and set the flag
                 valid_request = False
                 break
@@ -110,22 +113,34 @@ class BankersAlgorithm:
         # because they are recalculated during at each function where they
         # may be modified
         if valid_request:
+            logs.append("Valid Request. Adding new process resources")
             for i in range(self.num_res):
                 self.allocation[proc_num][i] += resource_req[i]
 
         # Check if any of the allocations are below zero and that
         # the system is currently in a safe state
+        logs.append("Checking system safety")
         is_safe, safe_seq, safety_logs = self.safety()
+        logs += safety_logs
         if min(self.allocation[proc_num]) < 0 or not is_safe:
+            if not is_safe:
+                logs.append("Resource request puts system in unsafe state." +
+                            " Resetting to last known good")
+            if min(self.allocation[proc_num]) < 0:
+                logs.append("Resource request allocated below 0 resources. " +
+                            "Resetting to last known good")
             # If the system is not safe then unset the valid flag and reset the
             # requested resources
             valid_request = False
             for i in range(self.num_res):
                 self.allocation[proc_num][i] -= resource_req[i]
 
+        if is_safe:
+            logs.append("System is safe with new resource allocation")
+
         # Return if the request was valid and the system is in a current safe
         # state
-        return valid_request, safe_seq, logs + safety_logs
+        return valid_request, safe_seq, logs
 
     def safety(self) -> Tuple[bool, List[int], List[str]]:
         """Check the safety of the current state of the system.
@@ -152,6 +167,9 @@ class BankersAlgorithm:
         # Create a queue to store the process order
         process_order = []
 
+        # Define an array for the logs
+        logs = []
+
         # Loop while the done flag is unset
         while(not done):
             # Find an index i such that both finish[i] == false and
@@ -162,6 +180,7 @@ class BankersAlgorithm:
                 if finish[i]:
                     continue
 
+                logs.append(f"Checking proc {i}")
                 can_do = True
                 for j in range(self.num_res):
                     if need[i][j] <= work[j]:
@@ -171,6 +190,7 @@ class BankersAlgorithm:
                         break
 
                 if can_do:
+                    logs.append(f"Executing proc {i}")
                     found_i = True
                     process_order.append(i)
                     finish[i] = True
@@ -179,6 +199,10 @@ class BankersAlgorithm:
                     break
 
             if not found_i or min(finish):
+                if not found_i:
+                    logs.append("No more processes are able to execute")
+                if min(finish):
+                    logs.append("All processes are finished")
                 done = True
 
-        return min(finish), process_order, ["Testing"]
+        return min(finish), process_order, logs

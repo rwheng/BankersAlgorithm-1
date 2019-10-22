@@ -70,7 +70,7 @@ class BankersAlgorithmTestCases(unittest.TestCase):
         """
         # Assert that an invalid request returns false because
         # it goes above the maximum allocation
-        self.assertFalse(self.b.request(0, [8, 0, 0]))
+        self.assertFalse(self.b.request(0, [8, 0, 0])[0])
         # Assert that the allocation for process 0 didn't go through
         self.assertEqual(self.b.allocation[0], [0, 1, 0])
 
@@ -80,7 +80,7 @@ class BankersAlgorithmTestCases(unittest.TestCase):
         """
         # Assert that a request that would put the resource allocation
         # below zero returns false
-        self.assertFalse(self.b.request(0, [-1, 0, 0]))
+        self.assertFalse(self.b.request(0, [-1, 0, 0])[0])
         # Assert that the invalid allocation didn't go through
         self.assertEqual(self.b.allocation[0], [0, 1, 0])
 
@@ -88,7 +88,7 @@ class BankersAlgorithmTestCases(unittest.TestCase):
         """Test that a request that puts the system into an unsafe
         state will not be carried out
         """
-        self.assertFalse(self.b.request(4, [3, 3, 0]))
+        self.assertFalse(self.b.request(4, [3, 3, 0])[0])
         self.assertEqual(self.b.allocation[4], [0, 0, 2])
 
     def test_valid_request(self):

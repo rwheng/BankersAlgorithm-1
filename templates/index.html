@@ -22,7 +22,12 @@
 			    <p class="lead">Banker's Algorithm is an algorithm for avoiding deadlocks. Its' main purpose is to determine if system in a given state can run all processes.</p>
 			    <hr>
 			    <h4>How to:</h4>
-			    <p>On the left is the initial configuration of the system. This contains the information in the same format as detailed on the D2L page. On the right is the form to request new resources to be allocated to to a process. The first text box is the process ID (0-4 in the default config) and the second box is the resource request field (3 space separated integers in the default configuration). The bottom text area is a read only log of the processes that went on within the bankers algorithm to determine if the state is safe or not. If either new resources are requested or the safety of the system is queried a banner will pop up below this div that details the safe-ness of the current system.</p>
+			    <p>On the left is the initial configuration of the system. This contains the information in the same format as detailed on the D2L page. This text area will update as new resource requests are made on the system. To reset to the default state click the grey button on the bottom right of the config column. On the right is the form to request new resources to be allocated to to a process. The first text box is the process ID (0-4 in the default config) and the second box is the resource request field (3 space separated integers in the default configuration). The bottom text area is a read only log of the processes that went on within the bankers algorithm to determine if the state is safe or not. If either new resources are requested or the safety of the system is queried a banner will pop up below this div that details the safe-ness of the current system.</p>
+			    <hr>
+			    Some requests with their answers <br>
+			    Can a request for (1,0,2) by P1 be granted? -> Yes. Safe sequence: <1, 3, 4, 0, 2> or <1, 3, 0, 2, 4> or <3, 1, 2, 0, 4> or ...<br>
+				Can a request for (3,3,0) by P4 be granted? -> No <br>
+				Can a request for (0,2,0) by P0 be granted? -> Yes. Safe sequence: <3, 1, 0, 2, 4> or <3, 1, 2, 0, 4> or ...
   			</div>
   		</div>
   		<div class="container" id="div_safety_alert"></div>

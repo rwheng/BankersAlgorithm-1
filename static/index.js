@@ -1,7 +1,3 @@
-// TO DO
-// 2. Show current representation of the system
-// 3. Explain what to do at the top
-
 // Collect the current configuration for resetting
 let base_config = $("#txt_config").val();
 let current_config = base_config
@@ -30,8 +26,41 @@ function update_config() {
         failure: function(errMsg) {
             console.err(errMsg);
         }
-	})
+	});
 }
+
+function pulldown_config() {
+	let remote_config = {}
+	$.ajax({
+		type: "GET",
+		url: "/current",
+        success: function(data){
+        	remote_config = data;
+
+        	let config_as_txt = remote_config["num_proc"].toString() + "\n" +
+						remote_config["num_res"].toString() + "\n" + 
+						remote_config["resources"].join(" ") + "\n";
+
+			for(let i = 0; i < remote_config["allocation"].length; i++) {
+				config_as_txt += remote_config["allocation"][i].join(" ");
+				config_as_txt += "\n";
+			}
+
+			for(let i = 0; i < remote_config["max"].length; i++) {
+				config_as_txt += remote_config["max"][i].join(" ");
+				config_as_txt += "\n";
+			}
+
+			config_as_txt.slice(0, config_as_txt.length - 1);
+			current_config = config_as_txt;
+			$("#txt_config").val(current_config);
+        },
+        failure: function(errMsg) {
+            console.err(errMsg);
+        }
+	});
+}
+	
 
 // Assign a handler to the resource request button that pings the flask
 // server with the request and parses the response
@@ -44,14 +73,16 @@ $("#btn_submit_request").on("click", () => {
 		url: "/request",
 		data: {proc_id: proc_id, resource_req: resource_req},
         success: function(data){
-        	$("#resource_request_log").val(data.log);
+        	console.log(data.log);
+
+        	$("#resource_request_log").val(data.log.join("\n"));
         	let alert = ""
         	if (data.is_safe) {
         		alert = generate_safe_alert(data.safe_seq);
         	} else {
         		alert = generate_unsafe_alert();
         	}
-    		$("#div_safety_alert").empty();
+    		// $("#div_safety_alert").empty();
     		$("#div_safety_alert").append(alert);
 
         },
@@ -61,7 +92,7 @@ $("#btn_submit_request").on("click", () => {
 	});
 	$("#txt_process_id").val("");
 	$("#txt_resource_request").val("")
-
+	pulldown_config();
 });
 
 // Assign a handler to check the safety of the system that pings the flask
