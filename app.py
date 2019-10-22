@@ -52,7 +52,13 @@ def update():
 
 @app.route("/current")
 def current():
-    pass
+    return jsonify({
+        'num_proc': b.num_proc,
+        'num_res': b.num_res,
+        'resources': b.resources,
+        'allocation': b.allocation,
+        'max': b.maximum
+    })
 
 
 if __name__ == "__main__":
