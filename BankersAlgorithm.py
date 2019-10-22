@@ -1,5 +1,6 @@
 from typing import List
 from typing import Tuple
+from Process import Process
 import logging
 
 logging.basicConfig(level=logging.DEBUG)
@@ -19,98 +20,63 @@ class BankersAlgorithm:
             maximum (List[List[int]]): Maximum possible resource allocation
         """
 
+        # Check that everything is valid, if not throw a value error
+        # explaining what's wrong
+        if(type(num_proc) is not int):
+            raise ValueError("Number of Processes must be an integer," +
+                             f"{type(num_proc)} is not int.")
+
+        if(type(num_res) is not int):
+            raise ValueError("Number of Resources must be an integer," +
+                             f"{type(num_res)} is not int.")
+
+        if len(resources) != num_res:
+            raise ValueError("Length of resource array must equal number " +
+                             f"of resources, {len(resources)} is not " +
+                             f" {num_res}")
+
+        if len(allocation) != num_proc:
+            raise ValueError("Rows of allocation matrix must equal number " +
+                             f"of processes, {len(allocation)} is not " +
+                             f" {num_proc}")
+
+        if len(maximum) != num_proc:
+            raise ValueError("Rows of maximum matrix must equal number " +
+                             f"of processes, {len(maximum)} is not " +
+                             f" {num_proc}")
+
+        for i in range(num_proc):
+            if len(allocation[i]) != num_res:
+                raise ValueError("Cols of allocation matrix must equal " +
+                                 f"number of resources, " +
+                                 f"{len(allocation)} is not" +
+                                 f" {num_res}")
+            if len(maximum[i]) != num_res:
+                raise ValueError("Cols of maximum matrix must equal number " +
+                                 f"of resources, {len(maximum)} is not " +
+                                 f" {num_res}")
+
+        for i in range(num_proc):
+            for j in range(num_res):
+                if type(allocation[i][j]) is not int:
+                    raise ValueError("All values in allocation matrix should" +
+                                     " be of type int. " +
+                                     f"{type(allocation[i][j])}" +
+                                     f" at {i},{j} is not int")
+                if type(maximum[i][j]) is not int:
+                    raise ValueError("All values in maximum matrix should" +
+                                     " be of type int. " +
+                                     f"{type(maximum[i][j])}" +
+                                     f" at {i},{j} is not int")
+
         # Update all of the datamembers
         self.num_proc = num_proc
         self.num_res = num_res
         self.resources = resources
-        self.allocation = allocation
-        self.maximum = maximum
+        self.processes = []
+        for i in range(num_proc):
+            self.processes.append(Process(allocation[i], maximum[i]))
 
-        # Check that everything is valid, if not throw a value error
-        # explaining what's wrong
-        if(type(self.num_proc) is not int):
-            raise ValueError("Number of Processes must be an integer," +
-                             f"{type(self.num_proc)} is not int.")
-
-        if(type(self.num_res) is not int):
-            raise ValueError("Number of Resources must be an integer," +
-                             f"{type(self.num_res)} is not int.")
-
-        if len(self.resources) != self.num_res:
-            raise ValueError("Length of resource array must equal number " +
-                             f"of resources, {len(self.resources)} is not " +
-                             f" {self.num_res}")
-
-        if len(self.allocation) != self.num_proc:
-            raise ValueError("Rows of allocation matrix must equal number " +
-                             f"of processes, {len(self.allocation)} is not " +
-                             f" {self.num_proc}")
-
-        if len(self.maximum) != self.num_proc:
-            raise ValueError("Rows of maximum matrix must equal number " +
-                             f"of processes, {len(self.maximum)} is not " +
-                             f" {self.num_proc}")
-
-        for i in range(self.num_proc):
-            if len(self.allocation[i]) != self.num_res:
-                raise ValueError("Cols of allocation matrix must equal " +
-                                 f"number of resources, " +
-                                 f"{len(self.allocation)} is not" +
-                                 f" {self.num_res}")
-            if len(self.maximum[i]) != self.num_res:
-                raise ValueError("Cols of maximum matrix must equal number " +
-                                 f"of resources, {len(self.maximum)} is not " +
-                                 f" {self.num_res}")
-
-        for i in range(self.num_proc):
-            for j in range(self.num_res):
-                if type(self.allocation[i][j]) is not int:
-                    raise ValueError("All values in allocation matrix should" +
-                                     " be of type int. " +
-                                     f"{type(self.allocation[i][j])}" +
-                                     f" at {i},{j} is not int")
-                if type(self.maximum[i][j]) is not int:
-                    raise ValueError("All values in maximum matrix should" +
-                                     " be of type int. " +
-                                     f"{type(self.allocation[i][j])}" +
-                                     f" at {i},{j} is not int")
-
-
-
-    def calculate_available(self) -> List[int]:
-        """Calculate the available array. This contains the number of
-        free resources that are not allocated to a process. available[i] = k
-        means that there are k instances of resource i free
-
-        Returns:
-            List[int]: a List, num_res long, that contains the avaiable
-                       resource count
-        """
-
-        # Seed the list with all 0s
-        available = [0] * self.num_res
-
-        # Loop over all of the resources
-        for i in range(self.num_res):
-            # Set the available_i equal to the number of unallocated resources
-            available[i] = (self.resources[i] -
-                            sum([allocation[i] for allocation
-                                 in self.allocation]))
-
-        # Return the available array
-        return available
-
-    def calculate_need(self) -> List[List[int]]:
-        """Calculate the need array. This contains the number of resources
-        that a process could request. need[i][j] = k means that process i
-        could request k more instances of resource j
-
-        Returns:
-            List[List[int]]: The need array
-        """
-        # Return Mat(maximum) - Mat(allocation)
-        return [[self.maximum[i][j] - self.allocation[i][j]
-                 for j in range(self.num_res)] for i in range(self.num_proc)]
 
     def request(self, proc_num: int,
                 resource_req: List[int]) -> Tuple[bool, List[int], List[str]]:
@@ -139,25 +105,17 @@ class BankersAlgorithm:
 
         # Start logs for request
         logs = []
-
-        # Calculate the need and available arrays
-        need = self.calculate_need()
-        available = self.calculate_available()
-
-        # Set the flag for valid request to true
         valid_request = True
 
-        # Check if any of the values of the request either go above
-        # the maximum bound for the process or exceed the number
-        # of available resources for the system
-        for i in range(self.num_res):
-            if (resource_req[i] > need[proc_num][i] or
-                    resource_req[i] > available[i]):
-                logs.append(f"Process request of resource_{i} unable " +
-                            "to be fulfulled, not enough resources")
-                # If the request is invalid then log and set the flag
-                valid_request = False
-                break
+        # Check if the process can accept the new resources
+        logs.append("Checking if process can accept resources")
+        if self.processes[proc_num].request(resource_req, self.resources):
+            logs.append("Process accepted resources allocation. " +
+                        "Checking system safety")
+
+        else:
+            logs.append("Invalid resource request")
+            valid_request = False
 
         # If the request is valid then add the resources to the allocation
         # for that process. No need to update the need or available arrays
@@ -165,9 +123,6 @@ class BankersAlgorithm:
         # may be modified
         safe_seq = []
         if valid_request:
-            logs.append("Valid Request. Adding new process resources")
-            for i in range(self.num_res):
-                self.allocation[proc_num][i] += resource_req[i]
 
             # Check if any of the allocations are below zero and that
             # the system is currently in a safe state
